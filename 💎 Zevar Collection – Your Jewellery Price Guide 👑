@@ -66,7 +66,7 @@
     <div class="container">
         <h2>Zevar Collection – Jewellery Price Guide</h2>
         <label>Metal Type:</label>
-        <select id="metalType" onchange="updateMakingCharges()">
+        <select id="metalType">
             <option value="gold">Gold</option>
             <option value="silver">Silver</option>
         </select>
@@ -84,11 +84,11 @@
             <option value="15.6">15.6K (650 Silver)</option>
         </select>
 
-        <label>Making Charge per gram:</label>
-        <div id="makingChargeOptions">
-            <input type="radio" name="makingCharge" value="999" checked> ₹999
-            <input type="radio" name="makingCharge" value="799"> ₹799
-        </div>
+        <label>Wastage (%):</label>
+        <input type="number" id="wastage" placeholder="Enter wastage %" required>
+
+        <label>Making Charge per gram (₹):</label>
+        <input type="number" id="makingCharge" placeholder="Enter making charge per gram" required>
 
         <label>Making Charge Discount (%):</label>
         <input type="number" id="discount" placeholder="Enter discount %" required>
@@ -101,42 +101,17 @@
     </div>
 
     <script>
-        function updateMakingCharges() {
-            let metalType = document.getElementById("metalType").value;
-            let makingChargeDiv = document.getElementById("makingChargeOptions");
-            let karatSelect = document.getElementById("karat");
-            
-            if (metalType === "gold") {
-                makingChargeDiv.innerHTML = `
-                    <input type="radio" name="makingCharge" value="999" checked> ₹999
-                    <input type="radio" name="makingCharge" value="799"> ₹799
-                `;
-                karatSelect.innerHTML = `
-                    <option value="22">22K (91.6%)</option>
-                    <option value="18">18K (75%)</option>
-                `;
-            } else {
-                makingChargeDiv.innerHTML = `
-                    <input type="radio" name="makingCharge" value="25" checked> ₹25
-                    <input type="radio" name="makingCharge" value="35"> ₹35
-                    <input type="radio" name="makingCharge" value="45"> ₹45
-                `;
-                karatSelect.innerHTML = `
-                    <option value="15.6">15.6K (650 Silver)</option>
-                `;
-            }
-        }
-
         function calculatePrice() {
             let metalType = document.getElementById("metalType").value;
             let liveRatePer10gm = parseFloat(document.getElementById("liveRate").value);
             let weight = parseFloat(document.getElementById("weight").value);
             let karat = parseFloat(document.getElementById("karat").value);
-            let makingCharge = parseFloat(document.querySelector('input[name="makingCharge"]:checked').value);
+            let wastage = parseFloat(document.getElementById("wastage").value);
+            let makingCharge = parseFloat(document.getElementById("makingCharge").value);
             let discount = parseFloat(document.getElementById("discount").value);
             let gst = parseFloat(document.getElementById("gst").value);
 
-            if (isNaN(liveRatePer10gm) || isNaN(weight) || isNaN(gst) || isNaN(discount)) {
+            if (isNaN(liveRatePer10gm) || isNaN(weight) || isNaN(wastage) || isNaN(makingCharge) || isNaN(discount) || isNaN(gst)) {
                 document.getElementById("result").innerHTML = "Please enter all values correctly.";
                 return;
             }
@@ -144,24 +119,29 @@
             let liveRatePerGram = liveRatePer10gm / 10;
             let purityFactor = (metalType === "gold") ? (karat / 24) : (karat === 15.6 ? 0.65 : 1);
             let basePrice = weight * liveRatePerGram * purityFactor;
-            let metalLabel = metalType === "gold" ? "Gold Value" : "Silver Value";
-            
+            let wastageAmount = (basePrice * wastage) / 100;
             let makingCost = weight * makingCharge;
             let discountAmount = (makingCost * discount) / 100;
             let finalMakingCharge = makingCost - discountAmount;
-
-            let subtotal = basePrice + finalMakingCharge;
+            let subtotal = basePrice + wastageAmount + finalMakingCharge;
             let gstAmount = (subtotal * gst) / 100;
             let finalPrice = subtotal + gstAmount;
+            let grossProfit = wastageAmount + finalMakingCharge;
 
             document.getElementById("result").innerHTML = `
-                <strong>${metalLabel}: ₹${basePrice.toFixed(2)}</strong><br>
+                <strong>Metal Value: ₹${basePrice.toFixed(2)}</strong><br>
+                Wastage Charges: ₹${wastageAmount.toFixed(2)}<br>
                 Making Charges: ₹${makingCost.toFixed(2)}<br>
                 Discount on Making: ₹${discountAmount.toFixed(2)}<br>
                 GST (${gst}%): ₹${gstAmount.toFixed(2)}<br>
-                <strong>Final Price: ₹${finalPrice.toFixed(2)}</strong>
+                <strong>Final Price: ₹${finalPrice.toFixed(2)}</strong><br>
+                <strong>Gross Profit: ₹${grossProfit.toFixed(2)}</strong>
             `;
         }
     </script>
 </body>
 </html>
+
+
+Now, your calculator includes Wastage % to determine gross profit and allows flexible Making Charges per gram instead of fixed values. Let me know if you need any more refinements!
+
